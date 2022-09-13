@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class TaskRepository {
-
+    //Данная переменная едина для всех экземпляров данного класса
+    //это не повод трогать код приложения, тут лучше поправить тесты
     private static AtomicLong ID_COUNTER = new AtomicLong();
     //В данном приложении для простоты будем использовать List для хранения задачек
 
@@ -49,5 +50,20 @@ public class TaskRepository {
         savedTask.setAssignTo(task.getAssignTo());
         savedTask.setAuthor(task.getAuthor());
         savedTask.setDone(task.isDone());
+    }
+
+    public void removeTask(Task task) {
+        //сейчас тоже скопируем немного кода, и уже существующего здесь
+        //=====в целом данные строчки можно вынести в отдельный метод
+        if(task==null){
+            throw  new RuntimeException("Не удалось найти такую задачу");
+        }
+
+        Task removeTask = taskList.stream()
+                .filter(editTask -> editTask.equals(task))
+                .findFirst()
+                .orElseThrow(()-> new RuntimeException("Не удалось найти задачу"));
+        //=====коды выше можно выделить в отдельный метод
+        this.taskList.remove(task);
     }
 }

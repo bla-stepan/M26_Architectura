@@ -7,7 +7,16 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
 public class TaskRepositoryTest {
-
+    /***
+     * Следует помнить, что иногда чистая архитектура это утопия
+     * но стоит пытаться придерживаться ее
+     * мы выстроили наши зависимости в соответствии с чистой архитектурой
+     * конфигурация -> точки входа -> Сервисный уровень -> уровень доступа в бд
+     * наш вервисный уровень довольно примитивный, но открыт к расширению
+     * мы можем обавить туда такие важные вещи, как валидации параметров
+     * например, чтобы пользователь не мог редактировать задачи, у которых ID < 0
+     * или также добавлять роли, чтобы только определенные пользователи могли создавать/редактировать задачки
+     */
     //Начнем с уровня доступа к базе данных. Основные операции - это добавление/удаление/редактирование и получение задачек.
 
     @Test
@@ -22,7 +31,7 @@ public class TaskRepositoryTest {
         //мы добавили задачку, теперь надо проверить что она действительно сохранилась
         //для этого нам нужно получить только, что добавленную задачку по ID
 
-        Task findByIdTask = taskRepository.getTaskById(1L);//требуется реализация в классе таксрепозиторий
+        Task findByIdTask = taskRepository.getTaskById(task.getId());//было 1L что вызвало непрохождение тестай
         //TDD гласит, что в тестах должно быть 3А - Assing, action, assert (назначение, действие, утверждение)
         //Самое время для assert (утверждения)
         assertTrue(added);
@@ -38,12 +47,12 @@ public class TaskRepositoryTest {
         //название метода - при редактировании задачи следует проверить что изменения сохранены
         TaskRepository taskRepository = new TaskRepository();
         Task task = new Task();
-        task.setDone(true);
+        task.setDone(false);
         task.setAuthor("Blandinskiy Stepan");
         task.setAssignTo("SkillFactory Student");
         boolean added = taskRepository.add(task); //да первый тест нужно немного отредактировать
 
-        Task findByIdTask = taskRepository.getTaskById(1L);
+        Task findByIdTask = taskRepository.getTaskById(task.getId());//было 1L что вызвало непрохождение теста
 
         //Сейчас нужно скопировать проверки из первого теста
         //в копи-пасте нет ничего страшного если она осмысленная
@@ -61,10 +70,26 @@ public class TaskRepositoryTest {
         taskRepository.editTask(findByIdTask);
 
         //теперь проверим, что изменения действительно сохранились
-        findByIdTask = taskRepository.getTaskById(1L);
+        findByIdTask = taskRepository.getTaskById(task.getId());
 
         assertNotNull(findByIdTask);
         assertThat("Неверное назначение для", findByIdTask.getAssignTo(), is("Blandinskiy Stepan"));
+    }
+    //теперь добавим удаление и получение задачек
 
+    @Test (expected = RuntimeException.class)
+    public void whenRemoveTaskShouldCheckThatTaskWasRemoved(){
+        TaskRepository taskRepository = new TaskRepository();
+        //сейчас чтобы сократить время скопируем некоторый код из предыдущих тестов
+        Task task = new Task();
+        task.setDone(false);
+        task.setAuthor("Blandinskiy Stepan");
+        task.setAssignTo("SkillFactory Student");
+        boolean added = taskRepository.add(task);
+
+        Task findByIdTask = taskRepository.getTaskById(task.getId());//было 1L что вызвало непрохождение теста
+        taskRepository.removeTask(findByIdTask);
+        taskRepository.getTaskById(task.getId());//на этой строчке должно будет выпасть исключение
+        //чтобы наш тест прошел нужно добавить кое-что в аннотацию теста
     }
 }
